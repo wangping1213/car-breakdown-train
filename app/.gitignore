@@ -1,5 +1,5 @@
 build/
 .gradle/
-.idea/
+.idea
 /**/*.iml
-/app/app-release.apk
+app/app-release.apk
