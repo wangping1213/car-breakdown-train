@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerHorizontal="true"
+    tools:context="com.wp.car_breakdown_train.activity.MainActivity"
+    >
+
+    <ImageView
+        android:id="@+id/iv_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+        />
+
+    <TextView
+        android:id="@+id/app_title_name"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dimen_29_dip"
+        android:text="@string/app_name"
+        android:textColor="#989DAC"
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="@dimen/dimen_8_dip" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/home_recycle_view"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dimen_370_dip"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/app_title_name">
+    </android.support.v7.widget.RecyclerView>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycle_view_circle"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/dimen_10_dip"
+        android:layout_marginTop="@dimen/dimen_30_dip"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/home_recycle_view"
+        >
+    </android.support.v7.widget.RecyclerView>
+
+
+    <Button
+        android:id="@+id/btn_into"
+        android:layout_width="@dimen/dimen_200_dip"
+        android:layout_height="@dimen/dimen_50_dip"
+        android:text="进 入"
+        android:onClick="jumpInto"
+        android:textSize="@dimen/dimen_18_sp"
+        android:textColor="#3FA2FF"
+        android:layout_marginTop="@dimen/dimen_30_dip"
+        android:background="@drawable/shape_rest"
+        app:layout_constraintTop_toBottomOf="@+id/recycle_view_circle"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        />
+
+
+</android.support.constraint.ConstraintLayout>

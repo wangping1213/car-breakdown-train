@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="blue">#2F98E9</color>
+    <color name="color_circle_1">#2E323B</color>
+    <color name="color_circle_2">#3FA2FF</color>
+    <color name="color_circle_3">#6650D1</color>
+    <color name="color_btn_1">#3FA2FF</color>
+    <color name="color_btn_2">#6650D1</color>
+    <color name="color_btn_cancel">#989DAC</color>
+    <color name="color_tip">#BF000000</color>
+</resources>
