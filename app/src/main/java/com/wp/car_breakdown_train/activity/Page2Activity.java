@@ -26,6 +26,7 @@ import com.wp.car_breakdown_train.application.MyApplication;
 import com.wp.car_breakdown_train.base.BaseActivity;
 import com.wp.car_breakdown_train.decoration.MySpaceItemDecoration;
 import com.wp.car_breakdown_train.dialog.LoadingDialogUtils;
+import com.wp.car_breakdown_train.entity.CarSystem;
 import com.wp.car_breakdown_train.enums.P2DrawableEnum;
 import com.wp.car_breakdown_train.holder.CommonViewHolder;
 import com.wp.car_breakdown_train.receiver.NetworkChangeReceiver;
@@ -53,6 +54,7 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
 
     private static final String TAG = "wangping";
     private static Pattern PATTERN_WIFI = Pattern.compile("^JG-VDB-II-[^-]+-([^-]+)-\\d+$");
+    private static Pattern PATTERN_SYSTEM = Pattern.compile("^([a-zA-Z]+)\\d+$");
     private RecyclerView recycler_view_system;
     private static final String WIFI_PASSWORD = "jinggekeji";
     private static final String OTHER_SSID = "JG-VDB-II-OTHER-OTHER-0001";
@@ -61,7 +63,7 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
     private String currentSsid;
     private Dialog dialog;
 
-    private List<Integer> data = new ArrayList<>();
+    private List<CarSystem> data = new ArrayList<>();
     private WifiManager mWifiManager;
     private static Map<String, String> wifiMap = new HashMap<>();
     private NetworkChangeReceiver mReceiver;
@@ -109,16 +111,20 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
         ArrayList<String> ssidList = this.getIntent().getStringArrayListExtra("ssidList");
         String str = "";
         P2DrawableEnum drawableEnum = null;
+        CarSystem carSystem = null;
         for (String ssid : ssidList) {
             str = getSystemName(ssid);
             drawableEnum = P2DrawableEnum.getDrawableEnumByStr(str);
+            carSystem = new CarSystem();
+            carSystem.setSsid(ssid);
             if (null != drawableEnum && str.equals(drawableEnum.getStr())) {
-                data.add(drawableEnum.getNormalDrawableId());
+                carSystem.setDrawableId(drawableEnum.getNormalDrawableId());
                 wifiMap.put(str, ssid);
             } else {
-                data.add(drawableEnum.getNormalDrawableId());
+                carSystem.setDrawableId(drawableEnum.getNormalDrawableId());
                 wifiMap.put(drawableEnum.getStr(), ssid);
             }
+            data.add(carSystem);
         }
     }
 
@@ -130,18 +136,25 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
      */
     private static String getSystemName(String wifiName) {
         String str = "";
+        String result = "";
         if (null == wifiName || wifiName.trim().equals("")) return str;
         Matcher matcher = PATTERN_WIFI.matcher(wifiName);
         if (matcher.find()) {
             str = matcher.group(1);
+            if (null != str && !"".equals(str)) {
+                Matcher m = PATTERN_SYSTEM.matcher(str);
+                if (m.find()) {
+                    result = m.group(1);
+                }
+            }
         }
-        return str;
+        return result;
     }
 
     @Override
     public void onItemClickListener(int position, View itemView) {
         dialog = LoadingDialogUtils.createLoadingDialog(Page2Activity.this, "加载中...");
-        int normalDrawableId = data.get(position);
+        int normalDrawableId = data.get(position).getDrawableId();
 //        int selectedDrawableId = 0;
         final P2DrawableEnum p2DrawableEnum = P2DrawableEnum.getEnumByNomalDrawableId(normalDrawableId);
         if (null != p2DrawableEnum) {

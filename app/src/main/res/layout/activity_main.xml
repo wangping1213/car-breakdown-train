@@ -23,7 +23,7 @@
         android:layout_height="@dimen/dimen_29_dip"
         android:text="@string/app_name"
         android:textColor="#989DAC"
-        android:textSize="20sp"
+        android:textSize="@dimen/dimen_20_sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -32,17 +32,18 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/home_recycle_view"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dimen_370_dip"
+        android:layout_height="@dimen/dimen_300_dip"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="@dimen/dimen_50_dip"
         app:layout_constraintTop_toBottomOf="@+id/app_title_name">
     </android.support.v7.widget.RecyclerView>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycle_view_circle"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/dimen_10_dip"
-        android:layout_marginTop="@dimen/dimen_30_dip"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_0.5_dip"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/home_recycle_view"
@@ -58,9 +59,9 @@
         android:onClick="jumpInto"
         android:textSize="@dimen/dimen_18_sp"
         android:textColor="#3FA2FF"
-        android:layout_marginTop="@dimen/dimen_30_dip"
         android:background="@drawable/shape_rest"
         app:layout_constraintTop_toBottomOf="@+id/recycle_view_circle"
+        android:layout_marginTop="@dimen/dimen_50_dip"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         />
