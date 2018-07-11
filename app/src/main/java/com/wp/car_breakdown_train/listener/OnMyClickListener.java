@@ -1,17 +1,25 @@
 package com.wp.car_breakdown_train.listener;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.os.Process;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.wp.car_breakdown_train.Constant;
 import com.wp.car_breakdown_train.R;
 import com.wp.car_breakdown_train.activity.Page4Activity;
+import com.wp.car_breakdown_train.activity.tip.TipConnFailedActivity;
+import com.wp.car_breakdown_train.adapter.CommonRecycleAdapter;
 import com.wp.car_breakdown_train.application.MyApplication;
+import com.wp.car_breakdown_train.dialog.LoadingDialogUtils;
 import com.wp.car_breakdown_train.entity.CarPartPin;
 import com.wp.car_breakdown_train.holder.CommonViewHolder;
 import com.wp.car_breakdown_train.udp.UdpSystem;
@@ -30,6 +38,7 @@ import java.util.List;
  */
 public class OnMyClickListener implements View.OnClickListener {
 
+    private static final String TAG = "wangping";
     private TextView textView;
     private CheckBox checkBox;
     private Context myContext;
@@ -38,14 +47,17 @@ public class OnMyClickListener implements View.OnClickListener {
     private List<TextView> tvList;
     private CarPartPin data;
     private MyApplication application;
+    private Dialog dialog;
 
     public OnMyClickListener(CommonViewHolder holder, View view, Context myContext,
-                             List<CheckBox> cbList, List<TextView> tvList, CarPartPin data, MyApplication application) {
+                             List<CheckBox> cbList, List<TextView> tvList, CarPartPin data,
+                             MyApplication application) {
         if (view instanceof AppCompatTextView) {
             this.textView = (TextView) view;
         } else {
             this.checkBox = (CheckBox) view;
         }
+
         this.myContext = myContext;
         this.holder = holder;
         this.cbList = cbList;
@@ -68,8 +80,10 @@ public class OnMyClickListener implements View.OnClickListener {
             tv = textView;
             isCheck = ck.isChecked();
         }
-        if (isCheck)
+        if (isCheck) {
+            dialog = LoadingDialogUtils.createLoadingDialog(myContext, "设置中...");
             setCheckBox(ck, tv, ck.isChecked());
+        }
     }
 
     private void setCheckBox(int ckId, int tvId, boolean isChecked) {
@@ -103,14 +117,29 @@ public class OnMyClickListener implements View.OnClickListener {
                                 type = 2;
                             }
                             JSONObject obj = null;
-                            application.getPointMap().clear();
-                            application.getPointMap().put(aNum, type);
+//                            application.getPointMap().clear();
+//                            application.getPointMap().put(aNum, type);
                             Log.d("wangping", String.format("pointMap, aNum:%s, type:%s", aNum, type));
                             try {
-                                Page4Activity.checkboxMap.put(aNum, type);
+//                                Page4Activity.checkboxMap.put(aNum, type);
                                 Log.d("wangping", String.format("setPoint start:%s", TimeUtil.getNowStrTime()));
                                 obj = UdpSystem.setPoint(customId, aNum, type);
+                                if (null == obj) {
+                                    LoadingDialogUtils.closeDialog(dialog);
+                                    Intent intent = new Intent(myContext, TipConnFailedActivity.class);
+                                    myContext.startActivity(intent);
+                                    return;
+                                }
                                 Log.d("wangping", String.format("setPoint end:%s", TimeUtil.getNowStrTime()));
+
+                                final long page4Time = System.currentTimeMillis();
+                                if (null != dialog) application.getMap().put("dialog", dialog);
+                                Page4Activity page4Activity = (Page4Activity) myContext;
+                                Bundle bundle = new Bundle();
+                                bundle.putInt("position", holder.getAdapterPosition());
+                                bundle.putLong("page4Time", page4Time);
+                                page4Activity.sendMsg(bundle);
+
                             } catch (Exception e) {
                                 Log.e("wangping", String.format("aNum:%s, type:%s", aNum, type), e);
                             }

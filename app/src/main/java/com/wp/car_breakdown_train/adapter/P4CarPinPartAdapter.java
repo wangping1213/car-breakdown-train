@@ -1,6 +1,8 @@
 package com.wp.car_breakdown_train.adapter;
 
 import android.content.Context;
+import android.support.constraint.ConstraintLayout;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -16,6 +18,7 @@ import com.wp.car_breakdown_train.listener.OnMyClickListener;
 import com.wp.car_breakdown_train.viewTarget.MyViewTarget;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -31,15 +34,19 @@ public class P4CarPinPartAdapter extends CommonRecycleAdapter<CarPartPin> {
 
     private Context myContext;
 
+    private MyApplication application;
+
     public P4CarPinPartAdapter(Context context, List<CarPartPin> dataList) {
         super(context, dataList, R.layout.item_p4_pin);
         myContext = context;
+        application = (MyApplication) ((Page4Activity) myContext).getApplication();
     }
 
     public P4CarPinPartAdapter(Context context, List<CarPartPin> dataList, CommonViewHolder.onItemCommonClickListener commonClickListener) {
         super(context, dataList, R.layout.item_p4_pin);
         myContext = context;
         this.commonClickListener = commonClickListener;
+        application = (MyApplication) ((Page4Activity) myContext).getApplication();
     }
 
 
@@ -49,23 +56,27 @@ public class P4CarPinPartAdapter extends CommonRecycleAdapter<CarPartPin> {
     }
 
     @Override
-    void bindData(CommonViewHolder holder, CarPartPin data) {
-        ImageView iv_p4_pin = holder.getView(R.id.iv_p4_pin);
+    void bindData(final CommonViewHolder holder, CarPartPin data) {
+        final ImageView iv_p4_pin = holder.getView(R.id.iv_p4_pin);
 
-        List<CheckBox> cbList = new ArrayList<>();
-        List<TextView> tvList = new ArrayList<>();
-        Glide.with(myContext).load(R.drawable.p4_list_bg).into(iv_p4_pin);
+        final List<Integer> viewIdList = Arrays.asList(R.id.ck_cut_off, R.id.ck_conn, R.id.ck_bonding, R.id.tv_conn, R.id.tv_bonding, R.id.tv_cut_off);
+
+        final List<CheckBox> cbList = new ArrayList<>();
+        final List<TextView> tvList = new ArrayList<>();
         Glide.with(myContext).load(R.drawable.p4_line).into((ImageView) holder.getView(R.id.iv_pID_2));
         Glide.with(myContext).load(R.drawable.p4_line).into((ImageView) holder.getView(R.id.iv_cID_2));
         holder
                 .setText(R.id.tv_pin_name, data.getName())
+//                .setText(R.id.tv_pin_name, "爱的是卡号发来看手法可适当萨法第三方的总偶实在凑IM是的")
                 .setText(R.id.tv_pID, data.getPid())
                 .setText(R.id.tv_cID, data.getCid())
                 .setCommonClickListener(commonClickListener);
-
         int[] typeArr = data.getAtype();
         if (data.getAnum() != 0) {
-            int currentType = Page4Activity.checkboxMap.get(data.getAnum());
+            int currentType = -1;
+            if (null != application.getPointMap().get(data.getAnum())) {
+                currentType = application.getPointMap().get(data.getAnum());
+            }
             if (typeArr.length == 2) {
                 holder
                         .setViewVisibility(R.id.ck_bonding, View.GONE)
@@ -95,6 +106,49 @@ public class P4CarPinPartAdapter extends CommonRecycleAdapter<CarPartPin> {
                     .setViewVisibility(R.id.ck_bonding, View.GONE)
                     .setViewVisibility(R.id.tv_bonding, View.GONE);
         }
+
+        final TextView tv = holder.getView(R.id.tv_pin_name);
+        Glide.with(myContext).load(R.drawable.p4_list_bg)
+//                .listener(new RequestListener<Integer, GlideDrawable>() {
+//                    @Override
+//                    public boolean onException(Exception e, Integer integer, Target<GlideDrawable> target, boolean b) {
+//                        return false;
+//                    }
+//
+//                    @Override
+//                    public boolean onResourceReady(GlideDrawable glideDrawable, Integer integer, Target<GlideDrawable> target, boolean b, boolean b1) {
+//                        if (iv_p4_pin == null) {
+//                            return false;
+//                        }
+//                        if (iv_p4_pin.getScaleType() != ImageView.ScaleType.FIT_XY) {
+//                            iv_p4_pin.setScaleType(ImageView.ScaleType.FIT_XY);
+//                        }
+//                        ViewGroup.LayoutParams params = iv_p4_pin.getLayoutParams();
+//
+//                        int perHeight = (66 * 3 + 66 * tv.getLineCount()) / 2;
+//                        params.height = perHeight * 3;
+//                        iv_p4_pin.setLayoutParams(params);
+//
+//
+//
+//                        return false;
+//                    }
+//                })
+                .into(iv_p4_pin);
+
+//        new android.os.Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (Integer vId : viewIdList) {
+//                    ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) holder.getView(vId).getLayoutParams();
+////                            lp.bottomToBottom = perHeight / 2;
+////                            lp.topToBottom = perHeight / 2;
+////                    lp.topMargin = 66 * 2;
+////                    lp.bottomMargin = 60;
+//                    Log.d("wangping", String.format("%s", lp.bottomMargin));
+//                }
+//            }
+//        }, 2000L);
     }
 
     private void setCheckBox(CommonViewHolder holder, int ckId, int tvId, boolean isChecked, List<CheckBox> cbList, List<TextView> tvList, CarPartPin data) {

@@ -11,4 +11,5 @@
     <color name="color_btn_2">#6650D1</color>
     <color name="color_btn_cancel">#989DAC</color>
     <color name="color_tip">#BF000000</color>
+    <color name="color_loading">#8C000000</color>
 </resources>

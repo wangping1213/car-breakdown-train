@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.os.Process;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,10 +28,12 @@ import com.wp.car_breakdown_train.holder.CommonViewHolder;
 import com.wp.car_breakdown_train.receiver.NetworkChangeReceiver;
 import com.wp.car_breakdown_train.udp.UdpSystem;
 import com.wp.car_breakdown_train.util.TimeUtil;
+import com.wp.car_breakdown_train.view.MarqueeView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +58,8 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
     private P4CarPinPartAdapter adapter;
     private NetworkChangeReceiver mReceiver;
     public static Map<Integer, Integer> checkboxMap = new HashMap<>();
+    private Handler myHandler;
+    private long time;
 
     private List<CarPartPin> data = new ArrayList<>();
 
@@ -66,9 +71,9 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        final Dialog dialog = LoadingDialogUtils.createLoadingDialog(this, "加载中....");
+        final long page4Time = System.currentTimeMillis();
         Log.d(TAG, String.format("page4-initView-start:%s", TimeUtil.getNowStrTime()));
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         application = (MyApplication) this.getApplication();
         Glide.with(this).load(R.drawable.bg1).into((ImageView) findViewById(R.id.iv_bg));
         Glide.with(this).load(R.drawable.p4_icon_menu).into((ImageView) findViewById(R.id.iv_back));
@@ -77,40 +82,75 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
 
         app_title_name = (TextView) findViewById(R.id.app_title_name);
 
+        initData2();
+        setAdapter(data);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recycler_view_system.setLayoutManager(layoutManager);
 //        Log.d(TAG, String.format("start:%s", TimeUtil.getNowStrTime()));
 
+        final Dialog dialog = LoadingDialogUtils.createLoadingDialog(this, "加载中....");
+        if (null != dialog) application.getMap().put("dialog", dialog);
+        myHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what) {
+                    case 1:
+                        Bundle bundle = msg.getData();
+                        long startTime = page4Time;
+                        int pos = -1;
+                        if (null != bundle) {
+                            startTime = bundle.getLong("page4Time");
+                            pos = bundle.getInt("position");
+                        }
+                        refreshData((Dialog) application.getMap().get("dialog"), startTime, pos);
+                        break;
+                }
+            }
+        };
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                long start1 = System.currentTimeMillis();
-                FutureTask<List<CarPartPin>> promise = initData();
-                try {
-                    List<CarPartPin> partPinList = promise.get();
-                    setAdapter(partPinList);
-
-                    long end1 = System.currentTimeMillis();
-                    Log.d(TAG, String.format("getData waste time:%s", end1-start1));
-                } catch (Exception e) {
-                    Log.e(TAG, "initView:promise error!", e);
-                }
-                LoadingDialogUtils.closeDialog(dialog);
+                sendMsg(null);
             }
-        }, 1000);
+        }, 1000L);
+    }
 
+    /**
+     * 发送消息
+     * @param bundle
+     */
+    public void sendMsg(Bundle bundle) {
+        Message msg = myHandler.obtainMessage();
+        msg.what = 1;
+        if (null != bundle) msg.setData(bundle);
+        msg.sendToTarget();
+    }
 
-//        CarPart carPart = (CarPart) this.getIntent().getSerializableExtra("carPart");
-//        app_title_name.setText(carPart.getName());
-//        if (null != carPart) {
-//            data = carPart.getPinList();
-//        }
+    private void refreshData(Dialog dialog, long page4Time, int pos) {
+        Log.d(TAG, String.format("stateTime:%s, page4Time:%s", application.getStateTime(), page4Time));
+        for (int i=0; i<20; i++) {
+            if (application.getStateTime() >= page4Time) {
+                checkboxMap.clear();
+                checkboxMap.putAll(application.getPointMap());
+                if (pos != -1) {
+                    adapter.notifyItemChanged(pos, 1);
+                } else {
+                    for (int j = 0; j < data.size(); j++) {
+                        adapter.notifyItemChanged(j, 1);
+                    }
+                }
+                break;
+            } else {
+                try {
+                    Thread.sleep(Constant.UDP_WAIT_TIME);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "sleep error!", e);
+                }
+            }
+        }
 
-
-
-        long end = System.currentTimeMillis();
-
-        Log.d(TAG, String.format("all-time:%s", end-start));
+        if (null != dialog) LoadingDialogUtils.closeDialog(dialog);
     }
 
 
@@ -126,85 +166,92 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
     }
 
 
-    private FutureTask<List<CarPartPin>> initData() {
+//    private FutureTask<List<CarPartPin>> initData() {
+//        CarPart carPart = (CarPart) this.getIntent().getSerializableExtra("carPart");
+//        FutureTask<List<CarPartPin>> promise = null;
+//                app_title_name.setText(carPart.getName());
+//        if (null != carPart) {
+//            data = carPart.getPinList();
+//
+//            Callable<List<CarPartPin>> callable = new Callable<List<CarPartPin>>() {
+//                @Override
+//                public List<CarPartPin> call() throws Exception {
+//                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+//                    int customId = application.getCustomId();
+//                    try {
+//                        JSONObject obj = null;
+//                        Map<Integer, Integer> pointMap = application.getPointMap();
+//                        Set<Integer> aNumSet = pointMap.keySet();
+//                        int aNum = -1;
+////                        Map<Integer, Integer> map = null;
+//                        for (Integer num : aNumSet) {
+//                            aNum = num;
+//                        }
+////                        Log.d(TAG, String.format("page4, getState-start:%s", TimeUtil.getNowStrTime()));
+//                        UdpSystem.getThread().mySuspend();
+//                        for (int i=0; i<3; i++) {
+//                            try {
+//                                obj = UdpSystem.getState(customId, Constant.UDP_WAIT_TIME);
+////                                String str = "{\"message\":\"getState\",\"result\":\"ok\",\"data\":{\"state\":[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}}";
+////                                JSONObject myObj = new JSONObject(str);
+////                                obj = myObj.getJSONObject("data");
+//
+//                                Log.d(TAG, String.format("search getState:%s", obj.toString()));
+//                                break;
+//                            } catch (Exception e) {
+//                                Thread.sleep(1000L);
+//                            }
+//                        }
+//                        UdpSystem.getThread().myResume();
+////                        Log.d(TAG, String.format("page4, getState-end:%s", TimeUtil.getNowStrTime()));
+//                        JSONArray stateArr = obj.getJSONArray("state");
+////                        map = new HashMap<>();
+//                        checkboxMap.clear();
+//                        for (int i = 0; i < stateArr.length(); i++) {
+////                            map.put(i + 1, stateArr.getInt(i));
+//                            checkboxMap.put(i + 1, stateArr.getInt(i));
+//                        }
+////                        if (pointMap.size() == 0 || pointMap.get(aNum) == map.get(aNum) || null == pointMap.get(aNum)) {
+////                            Log.d(TAG, String.format("success, aNum:%s, aType:%s, mapType:%s", aNum, pointMap.get(aNum), map.get(aNum)));
+////                        }
+//
+////                        if (null != data) {
+////                            for (CarPartPin partPin : data) {
+////                                if (partPin.getAnum() != 0) {
+////                                    partPin.setCurrentType(checkboxMap.get(partPin.getAnum()));
+////                                }
+////                            }
+////                        }
+//                        initFlag = true;
+//                    } catch (Exception e) {
+//                        Log.e(TAG, "getState in page4 error!", e);
+//                    }
+//
+//                    return data;
+//                }
+//            };
+//
+//            promise = new FutureTask<List<CarPartPin>>(callable);
+//
+//            new Thread(promise).start();
+//
+//        }
+//        return promise;
+//    }
+
+    private void initData2() {
         CarPart carPart = (CarPart) this.getIntent().getSerializableExtra("carPart");
-        FutureTask<List<CarPartPin>> promise = null;
-                app_title_name.setText(carPart.getName());
+
+        app_title_name.setText(carPart.getName());
+//        app_title_name.setText("爱的是卡号发来看手法可适当萨法第三方的总偶实在凑IM是的");
         if (null != carPart) {
             data = carPart.getPinList();
-
-            Callable<List<CarPartPin>> callable = new Callable<List<CarPartPin>>() {
-                @Override
-                public List<CarPartPin> call() throws Exception {
-                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                    int customId = application.getCustomId();
-                    try {
-                        JSONObject obj = null;
-                        Map<Integer, Integer> pointMap = application.getPointMap();
-                        Set<Integer> aNumSet = pointMap.keySet();
-                        int aNum = -1;
-//                        Map<Integer, Integer> map = null;
-                        for (Integer num : aNumSet) {
-                            aNum = num;
-                        }
-//                        Log.d(TAG, String.format("page4, getState-start:%s", TimeUtil.getNowStrTime()));
-                        UdpSystem.getThread().mySuspend();
-                        for (int i=0; i<3; i++) {
-                            try {
-                                obj = UdpSystem.getState(customId, Constant.UDP_WAIT_TIME);
-//                                String str = "{\"message\":\"getState\",\"result\":\"ok\",\"data\":{\"state\":[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}}";
-//                                JSONObject myObj = new JSONObject(str);
-//                                obj = myObj.getJSONObject("data");
-
-                                Log.d(TAG, String.format("search getState:%s", obj.toString()));
-                                break;
-                            } catch (Exception e) {
-                                Thread.sleep(1000L);
-                            }
-                        }
-                        UdpSystem.getThread().myResume();
-//                        Log.d(TAG, String.format("page4, getState-end:%s", TimeUtil.getNowStrTime()));
-                        JSONArray stateArr = obj.getJSONArray("state");
-//                        map = new HashMap<>();
-                        checkboxMap.clear();
-                        for (int i = 0; i < stateArr.length(); i++) {
-//                            map.put(i + 1, stateArr.getInt(i));
-                            checkboxMap.put(i + 1, stateArr.getInt(i));
-                        }
-//                        if (pointMap.size() == 0 || pointMap.get(aNum) == map.get(aNum) || null == pointMap.get(aNum)) {
-//                            Log.d(TAG, String.format("success, aNum:%s, aType:%s, mapType:%s", aNum, pointMap.get(aNum), map.get(aNum)));
-//                        }
-
-                        if (null != data) {
-                            for (CarPartPin partPin : data) {
-                                if (partPin.getAnum() != 0) {
-                                    partPin.setCurrentType(checkboxMap.get(partPin.getAnum()));
-                                }
-                            }
-                        }
-                        initFlag = true;
-                    } catch (Exception e) {
-                        Log.e(TAG, "getState in page4 error!", e);
-                    }
-
-                    return data;
-                }
-            };
-
-            promise = new FutureTask<List<CarPartPin>>(callable);
-
-            new Thread(promise).start();
-
         }
-        return promise;
     }
-
 
 
     @Override
     public void onItemClickListener(int position, View itemView) {
-//        ImageView iv_p2_system = (ImageView) itemView.findViewById(R.id.iv_p2_system);
-//        Glide.with(this).load(R.drawable.p3_list_bg_select).into(iv_p2_system);
 
     }
 
@@ -215,14 +262,18 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
 
     public void back(View view) {
         this.finish();
-//        super.onCreate(null);
     }
 
     public void reset(View view) {
-        Intent intent = new Intent(this, TipResetActivity.class);
-        intent.putExtra("page", 4);
-        this.startActivity(intent);
-        reloadContent();
+        if (System.currentTimeMillis() - time > 2000) {
+            //获得当前的时间
+            time = System.currentTimeMillis();
+
+            Intent intent = new Intent(this, TipResetActivity.class);
+            intent.putExtra("page", 4);
+            this.startActivity(intent);
+            reloadContent();
+        }
     }
 
     public void reloadContent() {

@@ -40,14 +40,15 @@ public class TipExitActivity extends BaseActivity {
 
     //退出方法
     private void exit() {
-        //如果在两秒大于2秒
-        if (System.currentTimeMillis() - time > 2000) {
-            //获得当前的时间
-            time = System.currentTimeMillis();
-            showToast(String.format("再按一次退出【%s】", R.string.app_name));
-        } else {
-            //点击在两秒以内
-            application.removeAllActivity();//执行移除所以Activity方法
-        }
+//        //如果在两秒大于2秒
+//        if (System.currentTimeMillis() - time > 2000) {
+//            //获得当前的时间
+//            time = System.currentTimeMillis();
+//            showToast(String.format("再按一次退出【%s】", R.string.app_name));
+//        } else {
+//            //点击在两秒以内
+//            application.removeAllActivity();//执行移除所以Activity方法
+//        }
+        application.removeAllActivity();//执行移除所以Activity方法
     }
 }

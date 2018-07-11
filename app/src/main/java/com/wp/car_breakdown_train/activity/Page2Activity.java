@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -67,7 +68,7 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
     private WifiManager mWifiManager;
     private static Map<String, String> wifiMap = new HashMap<>();
     private NetworkChangeReceiver mReceiver;
-
+    private int linkCount = 0;
 
     @Override
     protected int getContentViewLayoutID() {
@@ -76,7 +77,10 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        dialog = LoadingDialogUtils.createLoadingDialog(Page2Activity.this, "加载中...");
+        mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         application = (MyApplication) this.getApplication();
+        UdpSystem.setApplication(application);
         registerBroadcast();
         Glide.with(this).load(R.drawable.bg1).into((ImageView) findViewById(R.id.iv_bg));
         recycler_view_system = (RecyclerView) findViewById(R.id.recycle_view_system);
@@ -88,11 +92,23 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
         int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.dimen_10_dip);
         recycler_view_system.addItemDecoration(new MySpaceItemDecoration(spacingInPixels));
 
-        if (data.size() == 0) {
-            Intent intent = new Intent(this, TipExitActivity.class);
-            startActivity(intent);
-        }
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (null != dialog) {
+                    LoadingDialogUtils.closeDialog(dialog);
+                    dialog = null;
+                }
+                if (data.size() == 0) {
+                    List<ScanResult> scanResults = mWifiManager.getScanResults();
+                    Log.d(TAG, String.format("page2 resultList:%s", null == scanResults ? scanResults : scanResults.size()));
+                    Intent intent = new Intent(Page2Activity.this, TipExitActivity.class);
+                    startActivity(intent);
+                }
+            }
+        }, 2000L);
     }
+
     /**
      * 注册广播
      */
@@ -177,8 +193,8 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
 //                    if (currentSsid.equals(OTHER_SSID)) {
 //                        jumpFailed();
 //                    } else {
-                        connectionFlag = true;
-                        connWifiBySsid(wifiUtil, currentSsid);
+                    connectionFlag = true;
+                    connWifiBySsid(wifiUtil, currentSsid);
 //                    }
                 }
 
@@ -192,12 +208,10 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
             @Override
             public void run() {
                 JSONObject jsonObject = null;
-                for (int i=0; i<2; i++) {
-                    try {
-                        jsonObject = UdpSystem.search();
-                    } catch (Exception e) {
-                      Log.e(TAG, "search error!", e);
-                    }
+                try {
+                    jsonObject = UdpSystem.search();
+                } catch (Exception e) {
+                    Log.e(TAG, "search error!", e);
                 }
 
                 if (null == jsonObject) {
@@ -218,6 +232,10 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
                                 int customId = obj.getJSONObject("data").getInt("ID");
                                 application.setCustomId(customId);
                                 Log.d("wangping", String.format("customId:%s", customId));
+                            } else if ("already connected".equals(result)) {
+                                Log.d(TAG, String.format("deviceNo:%s is already connected!", deviceNo));
+                                jumpFailed("连接失败", "已有用户正在使用中");
+                                return;
                             }
                             application.setUdpState(Constant.STATE_CONNECTED);//连接成功
                             if (null != UdpSystem.getThread()) {
@@ -231,7 +249,10 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
                             Intent intent = new Intent(Page2Activity.this, Page3Activity.class);
                             intent.putExtra("info", info);
                             Page2Activity.this.startActivity(intent);
-                            LoadingDialogUtils.closeDialog(dialog);
+                            if (null != dialog) {
+                                LoadingDialogUtils.closeDialog(dialog);
+                                dialog = null;
+                            }
 
 
                         }
@@ -338,11 +359,24 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
 
     }
 
-    private void jumpFailed() {
+    private void jumpFailed(String... tips) {
         Intent intent = new Intent(this, TipConnFailedActivity.class);
+        if (tips.length > 0) {
+            ArrayList<String> tipList = new ArrayList<String>();
+            for (String tip : tips) {
+                tipList.add(tip);
+            }
+            intent.putStringArrayListExtra("tipList", tipList);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         this.startActivity(intent);
-        LoadingDialogUtils.closeDialog(dialog);
+        if (null != dialog) {
+            if (null != dialog) {
+                LoadingDialogUtils.closeDialog(dialog);
+                dialog = null;
+            }
+            dialog = null;
+        }
     }
 
     @Override
@@ -352,9 +386,12 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
             if (!connectionFlag) return;
 
             if (!ssid.equals(String.format("\"%s\"", currentSsid))) {
-                if (!currentSsid.startsWith("\"JG-VDB-II")) {
+                if (!currentSsid.startsWith("\"JG-VDB-II") && linkCount >= 3) {
+                    linkCount = 0;
                     jumpFailed();
                 } else {
+                    linkCount++;
+                    connectionFlag = true;
                     WifiUtil wifiUtil = WifiUtil.newInstance(mWifiManager);
                     connWifiBySsid(wifiUtil, currentSsid);
                     return;

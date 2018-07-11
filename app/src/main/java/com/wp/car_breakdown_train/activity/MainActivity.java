@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -16,6 +17,8 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.wp.car_breakdown_train.R;
+import com.wp.car_breakdown_train.activity.tip.TipConnFailedActivity;
+import com.wp.car_breakdown_train.activity.tip.TipTextActivity;
 import com.wp.car_breakdown_train.adapter.CarImageAdapter;
 import com.wp.car_breakdown_train.adapter.CircleAdapter;
 import com.wp.car_breakdown_train.base.BaseActivity;
@@ -23,6 +26,7 @@ import com.wp.car_breakdown_train.decoration.CircleSpaceItemDecoration;
 import com.wp.car_breakdown_train.decoration.MySpaceItemDecoration;
 import com.wp.car_breakdown_train.gallery.CardScaleHelper;
 import com.wp.car_breakdown_train.receiver.NetworkChangeReceiver;
+import com.wp.car_breakdown_train.view.MarqueeView;
 import com.wp.car_breakdown_train.util.ScreenUtil;
 import com.wp.car_breakdown_train.util.TimeUtil;
 import com.wp.car_breakdown_train.util.WifiUtil;
@@ -39,7 +43,7 @@ import java.util.List;
 public class MainActivity extends BaseActivity implements NetworkChangeReceiver.OnScanResultsListener {
 
     private static final String TAG = "wangping";
-    private RecyclerView home_recycle_view;
+    private MarqueeView home_recycle_view;
     private RecyclerView recycle_view_circle;
 
     private List<Integer> data;
@@ -56,15 +60,14 @@ public class MainActivity extends BaseActivity implements NetworkChangeReceiver.
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        super.onStop();
         Glide.with(this).load(R.drawable.bg1).into((ImageView) findViewById(R.id.iv_bg));
-        home_recycle_view = (RecyclerView) findViewById(R.id.home_recycle_view);
+        home_recycle_view = (MarqueeView) findViewById(R.id.home_recycle_view);
         recycle_view_circle = (RecyclerView) findViewById(R.id.recycle_view_circle);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         home_recycle_view.setLayoutManager(linearLayoutManager);
         RecyclerView.LayoutManager circleLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         recycle_view_circle.setLayoutManager(circleLayoutManager);
-
-
         registerBroadcast();
 
         initData();
@@ -72,8 +75,9 @@ public class MainActivity extends BaseActivity implements NetworkChangeReceiver.
         // 设置适配器
         home_recycle_view.setAdapter(new CarImageAdapter(this, data));
         int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.dimen_10_dip);
-        home_recycle_view.addItemDecoration(new MySpaceItemDecoration(spacingInPixels));
+        home_recycle_view.addItemDecoration(new MySpaceItemDecoration(getResources().getDimensionPixelSize(R.dimen.dimen_5_dip)));
         CardScaleHelper cardScaleHelper = new CardScaleHelper(recycle_view_circle);
+        cardScaleHelper.setSize(data.size());
         cardScaleHelper.setPagePadding(getResources().getDimensionPixelSize(R.dimen.dimen_5_dip));
         cardScaleHelper.setShowLeftCardWidth(getResources().getDimensionPixelSize(R.dimen.dimen_50_dip));
         cardScaleHelper.setCenterWidth(getResources().getDimensionPixelSize(R.dimen.dimen_180_dip));
@@ -109,11 +113,25 @@ public class MainActivity extends BaseActivity implements NetworkChangeReceiver.
                 R.drawable.p1_car_baic_ec200_select, R.drawable.p1_car_baic_ev160_select, R.drawable.p1_car_bc_select,
                 R.drawable.p1_car_bydq_select, R.drawable.p1_car_byd_e5_select, R.drawable.p1_car_cruze_select,
                 R.drawable.p1_car_magotan_select, R.drawable.p1_car_roewe_e550_select, R.drawable.p1_car_superb_select,
-                R.drawable.p1_car_tiguan_select
+                R.drawable.p1_car_tiguan_select, R.drawable.p1_car_more_select
         ));
     }
 
     public void jumpInto(View view) throws InterruptedException {
+        LocationManager locManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+
+        if(!locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            // 未打开位置开关，可能导致定位失败或定位不准，提示用户或做相应处理
+            Log.d(TAG, String.format("location is not opened!"));
+            //弹出提示，未打开位置开关
+            Intent intent = new Intent(this, TipConnFailedActivity.class);
+            ArrayList<String> tipList = new ArrayList<String>();
+            tipList.add("扫描WIFI列表失败");
+            tipList.add("请打开位置（GPS）开关");
+            intent.putStringArrayListExtra("tipList", tipList);
+            startActivity(intent);
+            return;
+        }
         mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         WifiUtil wifiUtil = WifiUtil.newInstance(mWifiManager);
         if (!mWifiManager.isWifiEnabled()) {
@@ -147,5 +165,19 @@ public class MainActivity extends BaseActivity implements NetworkChangeReceiver.
         t.putStringArrayListExtra("ssidList", ssidList);
         this.startActivity(t);
         scanResultFlag = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        home_recycle_view.stopMarquee();
+        Log.d(TAG, String.format("main page onPause!"));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        home_recycle_view.startMarquee(-1);
+        Log.d(TAG, String.format("main page onResume!"));
     }
 }

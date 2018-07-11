@@ -21,15 +21,18 @@ public class CarImageAdapter extends CommonRecycleAdapter<Integer> {
     private CommonViewHolder.onItemCommonClickListener commonClickListener;
 
     private Context myContext;
+    private int size;
 
     public CarImageAdapter(Context context, List<Integer> dataList) {
         super(context, dataList, R.layout.item_p1_img);
+        size = dataList.size();
         myContext = context;
     }
 
     public CarImageAdapter(Context context, List<Integer> dataList, CommonViewHolder.onItemCommonClickListener commonClickListener) {
         super(context, dataList, R.layout.item_p1_img);
         myContext = context;
+        size = dataList.size();
         this.commonClickListener = commonClickListener;
     }
 
@@ -40,4 +43,13 @@ public class CarImageAdapter extends CommonRecycleAdapter<Integer> {
         Glide.with(myContext).load(data).into(iv_p1_car);
     }
 
+    @Override
+    public void onBindViewHolder(CommonViewHolder holder, int position) {
+        bindData(holder, dataList.get(position%size));
+    }
+
+    @Override
+    public int getItemCount() {
+        return Integer.MAX_VALUE;
+    }
 }

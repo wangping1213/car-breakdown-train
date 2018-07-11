@@ -47,9 +47,10 @@ public class TipResetActivity extends BaseActivity {
                     if (null != retObj) {
                         String message = retObj.getString("result");
                         if (null != message && message.equals("ok")) {
+                            TipResetActivity.this.finish();
                             Intent intent = new Intent(TipResetActivity.this, TipTextActivity.class);
                             TipResetActivity.this.startActivity(intent);
-                            TipResetActivity.this.finish();
+                            Thread.sleep(2000L);
                             application.setReloadFlag(1);
                         }
                     }

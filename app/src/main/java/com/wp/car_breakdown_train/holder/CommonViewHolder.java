@@ -1,5 +1,6 @@
 package com.wp.car_breakdown_train.holder;
 
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
@@ -48,7 +49,7 @@ public class CommonViewHolder extends RecyclerView.ViewHolder implements View.On
     }
 
     public CommonViewHolder setText(int viewId, CharSequence text) {
-        TextView tv = getView(viewId);
+        AppCompatTextView tv = getView(viewId);
         tv.setText(text);
         return this;
     }

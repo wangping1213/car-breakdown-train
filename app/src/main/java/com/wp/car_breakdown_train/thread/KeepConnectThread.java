@@ -9,6 +9,9 @@ import com.wp.car_breakdown_train.application.MyApplication;
 import com.wp.car_breakdown_train.udp.UdpSystem;
 import com.wp.car_breakdown_train.util.TimeUtil;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  * 保持连接的线程
  * @author wangping
@@ -16,9 +19,11 @@ import com.wp.car_breakdown_train.util.TimeUtil;
  */
 public class KeepConnectThread extends Thread {
 
+    private static final String TAG = "wangping";
     private final int SUSPEND = 0;
     private final int RUNNING = 1;
     private int status = 1;
+    public static boolean isLock;
 //    private long count = 0;
 
     private MyApplication application;
@@ -41,9 +46,18 @@ public class KeepConnectThread extends Thread {
         while (udpState == Constant.STATE_CONNECTED) {
             try {
                 if (status == SUSPEND) {
+                    isLock = true;
                     this.wait();
+                    Log.d(TAG, String.format("into wait!"));
+                    if (application.getUdpState() != Constant.STATE_CONNECTED) break;
                 }
-                UdpSystem.getState(customId, 1000L);
+                JSONObject obj = UdpSystem.getState(customId, 1000L);
+                JSONArray stateArr = obj.getJSONArray("state");
+
+                for (int i = 0; i < stateArr.length(); i++) {
+                    application.getPointMap().put(i + 1, stateArr.getInt(i));
+                }
+                application.setStateTime(System.currentTimeMillis());
 //                Log.d("wangping", String.format("getState in keepConnect!date:%s", TimeUtil.getNowStrTime()));
                 count = 0;
             } catch (Exception e) {
@@ -65,10 +79,14 @@ public class KeepConnectThread extends Thread {
      */
     public synchronized void myResume()
     {
-        // 修改状态
-        status = RUNNING;
-        // 唤醒
-        notifyAll();
+        Log.d(TAG, String.format("myResume, isLock:%s, status:%s", isLock, status));
+        if (isLock) {
+            isLock = false;
+            // 修改状态
+            status = RUNNING;
+            // 唤醒
+            notifyAll();
+        }
     }
 
     /**

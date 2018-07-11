@@ -24,7 +24,7 @@ public class TipTextActivity extends BaseActivity {
             }
         };
 
-        new Handler().postDelayed(runnable, 2000L);
+        new Handler().postDelayed(runnable, 3000L);
     }
 
 

@@ -42,6 +42,7 @@ public class P3CarPartAdapter extends CommonRecycleAdapter<CarPart> {
 //        Glide.with(myContext).load(R.drawable.p3_list_bg_normal).into(iv_p3_system);
         holder
                 .setText(R.id.app_title_name, data.getName())
+//                .setText(R.id.app_title_name, "表示会跟随ParentView的状态来变化，其实没加也不会有问题，因为默认状态本来就是能传递的")
                 .setCommonClickListener(commonClickListener);
     }
 

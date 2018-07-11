@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.wp.car_breakdown_train.Constant;
 import com.wp.car_breakdown_train.R;
 import com.wp.car_breakdown_train.activity.tip.TipResetActivity;
 import com.wp.car_breakdown_train.adapter.P3CarPartAdapter;
@@ -19,6 +20,7 @@ import com.wp.car_breakdown_train.decoration.MySpaceItemDecoration;
 import com.wp.car_breakdown_train.entity.CarPart;
 import com.wp.car_breakdown_train.entity.CarPartPin;
 import com.wp.car_breakdown_train.holder.CommonViewHolder;
+import com.wp.car_breakdown_train.udp.UdpSystem;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -76,6 +78,7 @@ public class Page3Activity extends BaseActivity implements CommonViewHolder.onIt
                 infoObj = new JSONObject(info);
                 String title = infoObj.getString("title");
                 app_title_name.setText(title);
+//                app_title_name.setText("爱上的咖啡哈迪斯的离开后覅椰蓉才能日以上若人我拉出认识到了");
                 JSONArray partArr = infoObj.getJSONArray("part");
                 if (null != partArr) {
                     for (int i=0; i<partArr.length(); i++) {
@@ -148,5 +151,26 @@ public class Page3Activity extends BaseActivity implements CommonViewHolder.onIt
     public void reset(View view) {
         Intent intent = new Intent(this, TipResetActivity.class);
         this.startActivity(intent);
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //处理
+        final int customId = application.getCustomId();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    UdpSystem.disconnect(customId);
+                    application.setUdpState(Constant.STATE_NOT_CONNECT);
+                    Log.d(TAG, "page3 onDestroy!");
+                } catch (Exception e) {
+                    Log.e(TAG, String.format("Page3 onDestroy, disconnect customId:%", customId));
+                }
+            }
+        }).start();
+
     }
 }

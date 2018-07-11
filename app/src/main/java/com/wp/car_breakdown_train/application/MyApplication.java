@@ -26,6 +26,10 @@ public class MyApplication extends Application {
 
     private Map<Integer, Integer> pointMap = new HashMap<>();
 
+    private Map<String, Object> map = new HashMap<>();
+
+    private long stateTime;//取得getState结果的时间
+
     List<Activity> activityList;
 
     public void onCreate() {
@@ -101,4 +105,19 @@ public class MyApplication extends Application {
         this.reloadFlag = reloadFlag;
     }
 
+    public long getStateTime() {
+        return stateTime;
+    }
+
+    public void setStateTime(long stateTime) {
+        this.stateTime = stateTime;
+    }
+
+    public Map<String, Object> getMap() {
+        return map;
+    }
+
+    public void setMap(Map<String, Object> map) {
+        this.map = map;
+    }
 }
