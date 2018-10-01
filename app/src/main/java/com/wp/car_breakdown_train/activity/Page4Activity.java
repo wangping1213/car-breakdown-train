@@ -270,7 +270,7 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
             time = System.currentTimeMillis();
 
             Intent intent = new Intent(this, TipResetActivity.class);
-            intent.putExtra("page", 4);
+            intent.putExtra("page", "4");
             this.startActivity(intent);
             reloadContent();
         }

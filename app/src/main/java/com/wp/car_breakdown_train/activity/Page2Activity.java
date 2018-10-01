@@ -54,7 +54,7 @@ import java.util.regex.Pattern;
 public class Page2Activity extends BaseActivity implements CommonViewHolder.onItemCommonClickListener, NetworkChangeReceiver.OnConnectionChangeListener {
 
     private static final String TAG = "wangping";
-    private static Pattern PATTERN_WIFI = Pattern.compile("^JG-VDB-II-[^-]+-([^-]+)-\\d+$");
+    private static Pattern PATTERN_WIFI = Pattern.compile("^JG-VDB-II-[^-]+-([^-]+)-[0-9a-fA-F]+$");
     private static Pattern PATTERN_SYSTEM = Pattern.compile("^([a-zA-Z]+)\\d+$");
     private RecyclerView recycler_view_system;
     private static final String WIFI_PASSWORD = "jinggekeji";

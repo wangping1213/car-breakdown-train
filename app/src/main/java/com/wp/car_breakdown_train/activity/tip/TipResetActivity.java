@@ -40,6 +40,9 @@ public class TipResetActivity extends BaseActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                TipResetActivity.this.finish();
+
+                final String pageStr = TipResetActivity.this.getIntent().getStringExtra("page");
                 int customId = application.getCustomId();
                 try {
                     application.getPointMap().clear();
@@ -47,11 +50,12 @@ public class TipResetActivity extends BaseActivity {
                     if (null != retObj) {
                         String message = retObj.getString("result");
                         if (null != message && message.equals("ok")) {
-                            TipResetActivity.this.finish();
                             Intent intent = new Intent(TipResetActivity.this, TipTextActivity.class);
                             TipResetActivity.this.startActivity(intent);
                             Thread.sleep(2000L);
-                            application.setReloadFlag(1);
+                            if ("4".equals(pageStr)) {
+                                application.setReloadFlag(1);
+                            }
                         }
                     }
                 } catch (Exception e) {
