@@ -77,10 +77,23 @@ public class P4CarPinPartAdapter extends CommonRecycleAdapter<CarPartPin> {
             if (null != application.getPointMap().get(data.getAnum())) {
                 currentType = application.getPointMap().get(data.getAnum());
             }
-            if (typeArr.length == 2) {
+
+            if (typeArr.length == 1) {
+                holder
+                        .setViewVisibility(R.id.ck_cut_off, View.GONE)
+                        .setViewVisibility(R.id.tv_cut_off, View.GONE)
+                        .setViewVisibility(R.id.ck_bonding, View.GONE)
+                        .setViewVisibility(R.id.tv_bonding, View.GONE);
+            } else if (typeArr.length == 2) {
                 holder
                         .setViewVisibility(R.id.ck_bonding, View.GONE)
                         .setViewVisibility(R.id.tv_bonding, View.GONE);
+            } else if (typeArr.length == 3) {
+                holder
+                        .setViewVisibility(R.id.ck_cut_off, View.VISIBLE)
+                        .setViewVisibility(R.id.tv_cut_off, View.VISIBLE)
+                        .setViewVisibility(R.id.ck_bonding, View.VISIBLE)
+                        .setViewVisibility(R.id.tv_bonding, View.VISIBLE);
             }
 
             for (int i=0; i<typeArr.length; i++) {
@@ -109,46 +122,7 @@ public class P4CarPinPartAdapter extends CommonRecycleAdapter<CarPartPin> {
 
         final TextView tv = holder.getView(R.id.tv_pin_name);
         Glide.with(myContext).load(R.drawable.p4_list_bg)
-//                .listener(new RequestListener<Integer, GlideDrawable>() {
-//                    @Override
-//                    public boolean onException(Exception e, Integer integer, Target<GlideDrawable> target, boolean b) {
-//                        return false;
-//                    }
-//
-//                    @Override
-//                    public boolean onResourceReady(GlideDrawable glideDrawable, Integer integer, Target<GlideDrawable> target, boolean b, boolean b1) {
-//                        if (iv_p4_pin == null) {
-//                            return false;
-//                        }
-//                        if (iv_p4_pin.getScaleType() != ImageView.ScaleType.FIT_XY) {
-//                            iv_p4_pin.setScaleType(ImageView.ScaleType.FIT_XY);
-//                        }
-//                        ViewGroup.LayoutParams params = iv_p4_pin.getLayoutParams();
-//
-//                        int perHeight = (66 * 3 + 66 * tv.getLineCount()) / 2;
-//                        params.height = perHeight * 3;
-//                        iv_p4_pin.setLayoutParams(params);
-//
-//
-//
-//                        return false;
-//                    }
-//                })
                 .into(iv_p4_pin);
-
-//        new android.os.Handler().postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                for (Integer vId : viewIdList) {
-//                    ConstraintLayout.LayoutParams lp = (ConstraintLayout.LayoutParams) holder.getView(vId).getLayoutParams();
-////                            lp.bottomToBottom = perHeight / 2;
-////                            lp.topToBottom = perHeight / 2;
-////                    lp.topMargin = 66 * 2;
-////                    lp.bottomMargin = 60;
-//                    Log.d("wangping", String.format("%s", lp.bottomMargin));
-//                }
-//            }
-//        }, 2000L);
     }
 
     private void setCheckBox(CommonViewHolder holder, int ckId, int tvId, boolean isChecked, List<CheckBox> cbList, List<TextView> tvList, CarPartPin data) {

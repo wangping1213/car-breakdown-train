@@ -165,85 +165,10 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
         recycler_view_system.addItemDecoration(new MySpaceItemDecoration(spacingInPixels));
     }
 
-
-//    private FutureTask<List<CarPartPin>> initData() {
-//        CarPart carPart = (CarPart) this.getIntent().getSerializableExtra("carPart");
-//        FutureTask<List<CarPartPin>> promise = null;
-//                app_title_name.setText(carPart.getName());
-//        if (null != carPart) {
-//            data = carPart.getPinList();
-//
-//            Callable<List<CarPartPin>> callable = new Callable<List<CarPartPin>>() {
-//                @Override
-//                public List<CarPartPin> call() throws Exception {
-//                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-//                    int customId = application.getCustomId();
-//                    try {
-//                        JSONObject obj = null;
-//                        Map<Integer, Integer> pointMap = application.getPointMap();
-//                        Set<Integer> aNumSet = pointMap.keySet();
-//                        int aNum = -1;
-////                        Map<Integer, Integer> map = null;
-//                        for (Integer num : aNumSet) {
-//                            aNum = num;
-//                        }
-////                        Log.d(TAG, String.format("page4, getState-start:%s", TimeUtil.getNowStrTime()));
-//                        UdpSystem.getThread().mySuspend();
-//                        for (int i=0; i<3; i++) {
-//                            try {
-//                                obj = UdpSystem.getState(customId, Constant.UDP_WAIT_TIME);
-////                                String str = "{\"message\":\"getState\",\"result\":\"ok\",\"data\":{\"state\":[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}}";
-////                                JSONObject myObj = new JSONObject(str);
-////                                obj = myObj.getJSONObject("data");
-//
-//                                Log.d(TAG, String.format("search getState:%s", obj.toString()));
-//                                break;
-//                            } catch (Exception e) {
-//                                Thread.sleep(1000L);
-//                            }
-//                        }
-//                        UdpSystem.getThread().myResume();
-////                        Log.d(TAG, String.format("page4, getState-end:%s", TimeUtil.getNowStrTime()));
-//                        JSONArray stateArr = obj.getJSONArray("state");
-////                        map = new HashMap<>();
-//                        checkboxMap.clear();
-//                        for (int i = 0; i < stateArr.length(); i++) {
-////                            map.put(i + 1, stateArr.getInt(i));
-//                            checkboxMap.put(i + 1, stateArr.getInt(i));
-//                        }
-////                        if (pointMap.size() == 0 || pointMap.get(aNum) == map.get(aNum) || null == pointMap.get(aNum)) {
-////                            Log.d(TAG, String.format("success, aNum:%s, aType:%s, mapType:%s", aNum, pointMap.get(aNum), map.get(aNum)));
-////                        }
-//
-////                        if (null != data) {
-////                            for (CarPartPin partPin : data) {
-////                                if (partPin.getAnum() != 0) {
-////                                    partPin.setCurrentType(checkboxMap.get(partPin.getAnum()));
-////                                }
-////                            }
-////                        }
-//                        initFlag = true;
-//                    } catch (Exception e) {
-//                        Log.e(TAG, "getState in page4 error!", e);
-//                    }
-//
-//                    return data;
-//                }
-//            };
-//
-//            promise = new FutureTask<List<CarPartPin>>(callable);
-//
-//            new Thread(promise).start();
-//
-//        }
-//        return promise;
-//    }
-
     private void initData2() {
         CarPart carPart = (CarPart) this.getIntent().getSerializableExtra("carPart");
 
         app_title_name.setText(carPart.getName());
-//        app_title_name.setText("爱的是卡号发来看手法可适当萨法第三方的总偶实在凑IM是的");
         if (null != carPart) {
             data = carPart.getPinList();
         }
