@@ -8,6 +8,7 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,7 +19,6 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.wp.car_breakdown_train.R;
 import com.wp.car_breakdown_train.activity.tip.TipConnFailedActivity;
-import com.wp.car_breakdown_train.activity.tip.TipTextActivity;
 import com.wp.car_breakdown_train.adapter.CarImageAdapter;
 import com.wp.car_breakdown_train.adapter.CircleAdapter;
 import com.wp.car_breakdown_train.base.BaseActivity;
@@ -26,13 +26,15 @@ import com.wp.car_breakdown_train.decoration.CircleSpaceItemDecoration;
 import com.wp.car_breakdown_train.decoration.MySpaceItemDecoration;
 import com.wp.car_breakdown_train.gallery.CardScaleHelper;
 import com.wp.car_breakdown_train.receiver.NetworkChangeReceiver;
-import com.wp.car_breakdown_train.view.MarqueeView;
 import com.wp.car_breakdown_train.util.ScreenUtil;
 import com.wp.car_breakdown_train.util.TimeUtil;
 import com.wp.car_breakdown_train.util.WifiUtil;
+import com.wp.car_breakdown_train.view.MarqueeView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -157,9 +159,16 @@ public class MainActivity extends BaseActivity implements NetworkChangeReceiver.
                 ssidList.add(result.SSID);
             }
         }
-//        ssidList.add("JG-VDB-II-Verano-BODY-0022");
-//        ssidList.add("JG-VDB-II-Verano-AIR-0023");
-//        ssidList.add("JG-VDB-II-Verano-CHA-0024");
+        Collections.sort(ssidList, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                if (o1 != null && !"".equals(o1) && o2 != null && !"".equals(o2)) {
+                    return o1.compareTo(o2);
+                }
+                return 0;
+            }
+        });
+
 
         Intent t = new Intent(this, Page2Activity.class);
         t.putStringArrayListExtra("ssidList", ssidList);
