@@ -66,7 +66,6 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
 
     private List<CarSystem> data = new ArrayList<>();
     private WifiManager mWifiManager;
-    private static Map<String, String> wifiMap = new HashMap<>();
     private NetworkChangeReceiver mReceiver;
     private int linkCount = 0;
 
@@ -135,10 +134,8 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
             carSystem.setSsid(ssid);
             if (null != drawableEnum && str.equals(drawableEnum.getStr())) {
                 carSystem.setDrawableId(drawableEnum.getNormalDrawableId());
-                wifiMap.put(str, ssid);
             } else {
                 carSystem.setDrawableId(drawableEnum.getNormalDrawableId());
-                wifiMap.put(drawableEnum.getStr(), ssid);
             }
             data.add(carSystem);
         }
@@ -171,6 +168,7 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
     public void onItemClickListener(int position, View itemView) {
         dialog = LoadingDialogUtils.createLoadingDialog(Page2Activity.this, "加载中...");
         int normalDrawableId = data.get(position).getDrawableId();
+        currentSsid = data.get(position).getSsid();
 //        int selectedDrawableId = 0;
         final P2DrawableEnum p2DrawableEnum = P2DrawableEnum.getEnumByNomalDrawableId(normalDrawableId);
         if (null != p2DrawableEnum) {
@@ -182,7 +180,6 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
                 application.setUdpState(Constant.STATE_NOT_CONNECT);
                 mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                 WifiUtil wifiUtil = WifiUtil.newInstance(mWifiManager);
-                currentSsid = wifiMap.get(p2DrawableEnum.getStr());
 
                 if (!mWifiManager.isWifiEnabled()) {
                     connectionFlag = true;
