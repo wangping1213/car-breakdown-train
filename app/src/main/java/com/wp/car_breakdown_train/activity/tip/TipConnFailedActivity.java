@@ -1,7 +1,6 @@
 package com.wp.car_breakdown_train.activity.tip;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.TextView;
 

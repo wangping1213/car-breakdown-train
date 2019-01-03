@@ -1,5 +1,6 @@
 package com.wp.car_breakdown_train.activity;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,11 +13,13 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.wp.car_breakdown_train.Constant;
 import com.wp.car_breakdown_train.R;
+import com.wp.car_breakdown_train.activity.tip.TipConnFailedActivity;
 import com.wp.car_breakdown_train.activity.tip.TipResetActivity;
 import com.wp.car_breakdown_train.adapter.P3CarPartAdapter;
 import com.wp.car_breakdown_train.application.MyApplication;
 import com.wp.car_breakdown_train.base.BaseActivity;
 import com.wp.car_breakdown_train.decoration.MySpaceItemDecoration;
+import com.wp.car_breakdown_train.dialog.LoadingDialogUtils;
 import com.wp.car_breakdown_train.entity.CarPart;
 import com.wp.car_breakdown_train.entity.CarPartPin;
 import com.wp.car_breakdown_train.holder.CommonViewHolder;
@@ -40,6 +43,7 @@ public class Page3Activity extends BaseActivity implements CommonViewHolder.onIt
     private RecyclerView recycler_view_system;
     private TextView app_title_name;
     private MyApplication application;
+    private Dialog dialog;
 
 
     private List<CarPart> data = new ArrayList<>();
@@ -58,6 +62,8 @@ public class Page3Activity extends BaseActivity implements CommonViewHolder.onIt
 
         app_title_name = (TextView) findViewById(R.id.app_title_name);
 
+        application.getMap().put("returnFlag", false);
+        application.setCurrentActivityClass(this.getClass());
         initData();
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         recycler_view_system.setLayoutManager(layoutManager);
@@ -128,14 +134,48 @@ public class Page3Activity extends BaseActivity implements CommonViewHolder.onIt
 
 
     @Override
-    public void onItemClickListener(int position, View itemView) {
-//        ImageView iv_p3_system = (ImageView) itemView.findViewById(R.id.iv_p3_system);
-//        Glide.with(this).load(R.drawable.p3_list_bg_select).into(iv_p3_system);
+    public void onItemClickListener(final int position, final View itemView) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject obj = UdpSystem.getNowState();
+                    if (null == obj) {
+                        jumpFailed();
+                        return;
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            CarPart carPart = data.get(position);
+                            Intent intent = new Intent(Page3Activity.this, Page4Activity.class);
+                            intent.putExtra("carPart", carPart);
+                            if (!application.getMapData("returnFlag", Boolean.class) && application.getCurrentActivityClass() == Page3Activity.class) {
+                                Page3Activity.this.startActivity(intent);
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                }
+            }
+        }).start();
+    }
 
-        CarPart carPart = data.get(position);
-        Intent intent = new Intent(this, Page4Activity.class);
-        intent.putExtra("carPart", carPart);
+    private void jumpFailed(String... tips) {
+        Intent intent = new Intent(this, TipConnFailedActivity.class);
+        if (tips.length > 0) {
+            ArrayList<String> tipList = new ArrayList<String>();
+            for (String tip : tips) {
+                tipList.add(tip);
+            }
+            intent.putStringArrayListExtra("tipList", tipList);
+        }
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         this.startActivity(intent);
+        if (null != dialog) {
+            LoadingDialogUtils.closeDialog(dialog);
+            dialog = null;
+        }
     }
 
     @Override
@@ -144,8 +184,8 @@ public class Page3Activity extends BaseActivity implements CommonViewHolder.onIt
     }
 
     public void back(View view) {
+        application.getMap().put("returnFlag", true);
         this.finish();
-//        super.onCreate(null);
     }
 
     public void reset(View view) {

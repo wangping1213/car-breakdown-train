@@ -32,6 +32,7 @@ import com.wp.car_breakdown_train.enums.P2DrawableEnum;
 import com.wp.car_breakdown_train.holder.CommonViewHolder;
 import com.wp.car_breakdown_train.receiver.NetworkChangeReceiver;
 import com.wp.car_breakdown_train.udp.UdpSystem;
+import com.wp.car_breakdown_train.udp.receiver.UdpReceiverCenter;
 import com.wp.car_breakdown_train.util.TimeUtil;
 import com.wp.car_breakdown_train.util.WifiUtil;
 
@@ -39,9 +40,7 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,7 +78,11 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
         dialog = LoadingDialogUtils.createLoadingDialog(Page2Activity.this, "加载中...");
         mWifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         application = (MyApplication) this.getApplication();
+        UdpReceiverCenter.newInstance(application);
         UdpSystem.setApplication(application);
+
+        application.getMap().put("returnFlag", false);
+        application.setCurrentActivityClass(this.getClass());
         registerBroadcast();
         Glide.with(this).load(R.drawable.bg1).into((ImageView) findViewById(R.id.iv_bg));
         recycler_view_system = (RecyclerView) findViewById(R.id.recycle_view_system);
@@ -172,9 +175,6 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
 //        int selectedDrawableId = 0;
         final P2DrawableEnum p2DrawableEnum = P2DrawableEnum.getEnumByNomalDrawableId(normalDrawableId);
         if (null != p2DrawableEnum) {
-//            selectedDrawableId = p2DrawableEnum.getSelectedDrawableId();
-//            Glide.with(this).load(selectedDrawableId).into((ImageView) itemView.findViewById(R.id.iv_p2_system));
-
             try {
                 final MyApplication application = (MyApplication) Page2Activity.this.getApplication();
                 application.setUdpState(Constant.STATE_NOT_CONNECT);
@@ -187,12 +187,8 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
                 } else if (mWifiManager.getConnectionInfo().getSSID().equals(String.format("\"%s\"", currentSsid))) {
                     connUdp();
                 } else if (!mWifiManager.getConnectionInfo().getSSID().equals(String.format("\"%s\"", currentSsid))) {
-//                    if (currentSsid.equals(OTHER_SSID)) {
-//                        jumpFailed();
-//                    } else {
                     connectionFlag = true;
                     connWifiBySsid(wifiUtil, currentSsid);
-//                    }
                 }
 
             } catch (Exception e) {
@@ -205,19 +201,25 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
             @Override
             public void run() {
                 JSONObject jsonObject = null;
+                Intent intent = null;
                 try {
+                    Thread.sleep(Constant.UDP_WAIT_TIME);
                     jsonObject = UdpSystem.search();
+                    Class<?> tClass = null;
+                    tClass = Page3Activity.class;
+                    if (!application.getMapData("returnFlag", Boolean.class) && application.getCurrentActivityClass() == Page2Activity.class) {
+                        if (null == jsonObject) {
+                            jumpFailed();
+                            return;
+                        }
+                    }
+                    intent = new Intent(Page2Activity.this, tClass);
                 } catch (Exception e) {
                     Log.e(TAG, "search error!", e);
                 }
 
-                if (null == jsonObject) {
-                    jumpFailed();
-                    return;
-                }
-
                 try {
-                    application.setUdpState(Constant.STATE_NOT_CONNECT);//连接成功
+                    application.setUdpState(Constant.STATE_NOT_CONNECT);//连接未成功
                     String deviceNo = "";
                     if (null != jsonObject) {
                         deviceNo = jsonObject.getString("SN");
@@ -241,17 +243,15 @@ public class Page2Activity extends BaseActivity implements CommonViewHolder.onIt
                             }
                             UdpSystem.keepConnect(application, Page2Activity.this, TipConnFailedActivity.class);
 
-
                             String info = UdpSystem.getInfo(application.getCustomId());
-                            Intent intent = new Intent(Page2Activity.this, Page3Activity.class);
                             intent.putExtra("info", info);
-                            Page2Activity.this.startActivity(intent);
+                            if (!application.getMapData("returnFlag", Boolean.class) && application.getCurrentActivityClass() == Page2Activity.class) {
+                                Page2Activity.this.startActivity(intent);
+                            }
                             if (null != dialog) {
                                 LoadingDialogUtils.closeDialog(dialog);
                                 dialog = null;
                             }
-
-
                         }
                     }
                 } catch (Exception e) {

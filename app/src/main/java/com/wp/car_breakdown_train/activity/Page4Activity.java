@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Process;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.wp.car_breakdown_train.Constant;
 import com.wp.car_breakdown_train.R;
 import com.wp.car_breakdown_train.activity.tip.TipResetActivity;
 import com.wp.car_breakdown_train.adapter.P4CarPinPartAdapter;
@@ -28,19 +26,11 @@ import com.wp.car_breakdown_train.holder.CommonViewHolder;
 import com.wp.car_breakdown_train.receiver.NetworkChangeReceiver;
 import com.wp.car_breakdown_train.udp.UdpSystem;
 import com.wp.car_breakdown_train.util.TimeUtil;
-import com.wp.car_breakdown_train.view.MarqueeView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
 /**
  * 第三页的activity
@@ -80,6 +70,8 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
         Glide.with(this).load(R.drawable.p3_icon_reset).into((ImageView) findViewById(R.id.iv_reset));
         recycler_view_system = (RecyclerView) findViewById(R.id.recycle_view_system);
 
+        application.getMap().put("returnFlag", false);
+        application.setCurrentActivityClass(this.getClass());
         app_title_name = (TextView) findViewById(R.id.app_title_name);
 
         initData2();
@@ -127,30 +119,17 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
         msg.sendToTarget();
     }
 
-    private void refreshData(Dialog dialog, long page4Time, int pos) {
+    private void refreshData(final Dialog dialog, final long page4Time, final int pos) {
         Log.d(TAG, String.format("stateTime:%s, page4Time:%s", application.getStateTime(), page4Time));
-        for (int i=0; i<20; i++) {
-            if (application.getStateTime() >= page4Time) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
                 checkboxMap.clear();
                 checkboxMap.putAll(application.getPointMap());
-                if (pos != -1) {
-                    adapter.notifyItemChanged(pos, 1);
-                } else {
-                    for (int j = 0; j < data.size(); j++) {
-                        adapter.notifyItemChanged(j, 1);
-                    }
-                }
-                break;
-            } else {
-                try {
-                    Thread.sleep(Constant.UDP_WAIT_TIME);
-                } catch (InterruptedException e) {
-                    Log.e(TAG, "sleep error!", e);
-                }
+                if (null != dialog) LoadingDialogUtils.closeDialog(dialog);
             }
-        }
+        }).start();
 
-        if (null != dialog) LoadingDialogUtils.closeDialog(dialog);
     }
 
 
@@ -158,11 +137,22 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
 
     }
 
-    private void setAdapter(List<CarPartPin> partPinList) {
-        adapter = new P4CarPinPartAdapter(this, partPinList, this);
-        recycler_view_system.setAdapter(adapter);
-        int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.dimen_10_dip);
-        recycler_view_system.addItemDecoration(new MySpaceItemDecoration(spacingInPixels));
+    private void setAdapter(final List<CarPartPin> partPinList) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                UdpSystem.getNowState();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter = new P4CarPinPartAdapter(Page4Activity.this, partPinList, Page4Activity.this);
+                        recycler_view_system.setAdapter(adapter);
+                        int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.dimen_10_dip);
+                        recycler_view_system.addItemDecoration(new MySpaceItemDecoration(spacingInPixels));
+                    }
+                });
+            }
+        }).start();
     }
 
     private void initData2() {
@@ -186,6 +176,7 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
     }
 
     public void back(View view) {
+        application.getMap().put("returnFlag", true);
         this.finish();
     }
 
@@ -215,8 +206,10 @@ public class Page4Activity extends BaseActivity implements CommonViewHolder.onIt
                         Intent intent = new Intent(Page4Activity.this, Page4Activity.class);
                         CarPart carPart = (CarPart) Page4Activity.this.getIntent().getSerializableExtra("carPart");
                         intent.putExtra("carPart", carPart);
-                        Page4Activity.this.startActivity(intent);
-                        Page4Activity.this.finish();
+                        if (!application.getMapData("returnFlag", Boolean.class) && application.getCurrentActivityClass() == Page4Activity.class) {
+                            Page4Activity.this.startActivity(intent);
+                            Page4Activity.this.finish();
+                        }
                         break;
                     }
                 }

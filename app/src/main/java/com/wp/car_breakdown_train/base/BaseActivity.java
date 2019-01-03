@@ -129,4 +129,19 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
         mToast.show();
     }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (application == null) {
+            // 得到Application对象
+            application = (MyApplication) this.getApplication();
+        }
+
+        if (!this.getClass().toString().contains("Tip")) {
+            application.getMap().put("returnFlag", false);
+            application.setCurrentActivityClass(this.getClass());
+        }
+    }
 }

@@ -4,12 +4,11 @@ import android.app.Activity;
 import android.app.Application;
 
 import com.wp.car_breakdown_train.Constant;
-import com.wp.car_breakdown_train.activity.Page4Activity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 全局变量类
@@ -24,13 +23,17 @@ public class MyApplication extends Application {
      */
     private int udpState = Constant.STATE_NOT_CONNECT;
 
-    private Map<Integer, Integer> pointMap = new HashMap<>();
+    private String type;
 
-    private Map<String, Object> map = new HashMap<>();
+    private Map<Integer, Integer> pointMap = new ConcurrentHashMap<>();
+
+    private Map<String, Object> map = new ConcurrentHashMap<>();
 
     private long stateTime;//取得getState结果的时间
 
-    List<Activity> activityList;
+    private List<Activity> activityList;
+
+    private Class<?> currentActivityClass;
 
     public void onCreate() {
         super.onCreate();
@@ -58,6 +61,10 @@ public class MyApplication extends Application {
         }
     }
 
+    public Activity getActivity(int index) {
+        return this.activityList.get(index);
+    }
+
     /**
      * 销毁所有的Activity
      */
@@ -66,6 +73,14 @@ public class MyApplication extends Application {
         for (Activity activity : activityList) {
             activity.finish();
         }
+    }
+
+    public <T> T getMapData(String key, Class<T> tClass) {
+        return (T) this.getMap().get(key);
+    }
+
+    public void removeMapData(String key) {
+        this.getMap().remove(key);
     }
 
     /**
@@ -119,5 +134,21 @@ public class MyApplication extends Application {
 
     public void setMap(Map<String, Object> map) {
         this.map = map;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Class<?> getCurrentActivityClass() {
+        return currentActivityClass;
+    }
+
+    public void setCurrentActivityClass(Class<?> currentActivityClass) {
+        this.currentActivityClass = currentActivityClass;
     }
 }

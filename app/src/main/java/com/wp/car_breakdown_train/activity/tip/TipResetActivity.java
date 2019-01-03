@@ -6,8 +6,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.wp.car_breakdown_train.R;
-import com.wp.car_breakdown_train.activity.Page3Activity;
-import com.wp.car_breakdown_train.activity.Page4Activity;
 import com.wp.car_breakdown_train.application.MyApplication;
 import com.wp.car_breakdown_train.base.BaseActivity;
 import com.wp.car_breakdown_train.udp.UdpSystem;

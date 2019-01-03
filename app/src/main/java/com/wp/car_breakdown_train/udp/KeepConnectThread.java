@@ -1,4 +1,4 @@
-package com.wp.car_breakdown_train.thread;
+package com.wp.car_breakdown_train.udp;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,10 +6,7 @@ import android.util.Log;
 
 import com.wp.car_breakdown_train.Constant;
 import com.wp.car_breakdown_train.application.MyApplication;
-import com.wp.car_breakdown_train.udp.UdpSystem;
-import com.wp.car_breakdown_train.util.TimeUtil;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -39,39 +36,33 @@ public class KeepConnectThread extends Thread {
     @Override
     public synchronized void run() {
         // 判断是否停止
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_LOWEST);
+//        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_LOWEST);
         int customId = application.getCustomId();
         int udpState = application.getUdpState();
         int count = 0;
+        JSONObject obj = null;
         while (udpState == Constant.STATE_CONNECTED) {
             try {
-                if (status == SUSPEND) {
-                    isLock = true;
-                    this.wait();
-                    Log.d(TAG, String.format("into wait!"));
-                    if (application.getUdpState() != Constant.STATE_CONNECTED) break;
-                }
-                JSONObject obj = UdpSystem.getState(customId, 1000L);
-                JSONArray stateArr = obj.getJSONArray("state");
+                application.removeMapData("getState_retObj");
+                obj = UdpSystem.getState(customId, 1000L);
 
-                for (int i = 0; i < stateArr.length(); i++) {
-                    application.getPointMap().put(i + 1, stateArr.getInt(i));
+                if (null == obj) {
+                    count++;
+                    if (count <= 3) continue;
+                    application.setUdpState(Constant.STATE_CONNECT_FAIL);//连接失败
+                    Intent intent = new Intent(context, activityClass);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                } else {
+                    count = 0;
                 }
-                application.setStateTime(System.currentTimeMillis());
-//                Log.d("wangping", String.format("getState in keepConnect!date:%s", TimeUtil.getNowStrTime()));
-                count = 0;
             } catch (Exception e) {
-                Log.e("wangping", "getState error!", e);
-                count++;
-                if (count <= 3) continue;
-                application.setUdpState(Constant.STATE_CONNECT_FAIL);//连接失败
-                Intent intent = new Intent(context, activityClass);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+
             } finally {
                 udpState = application.getUdpState();
             }
         }
+        Log.d(TAG, "keep connect thread over!");
     }
 
     /**

@@ -8,16 +8,13 @@ import android.os.Process;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.wp.car_breakdown_train.Constant;
 import com.wp.car_breakdown_train.R;
 import com.wp.car_breakdown_train.activity.Page4Activity;
 import com.wp.car_breakdown_train.activity.tip.TipConnFailedActivity;
-import com.wp.car_breakdown_train.adapter.CommonRecycleAdapter;
 import com.wp.car_breakdown_train.application.MyApplication;
 import com.wp.car_breakdown_train.dialog.LoadingDialogUtils;
 import com.wp.car_breakdown_train.entity.CarPartPin;
@@ -117,8 +114,6 @@ public class OnMyClickListener implements View.OnClickListener {
                                 type = 2;
                             }
                             JSONObject obj = null;
-//                            application.getPointMap().clear();
-//                            application.getPointMap().put(aNum, type);
                             Log.d("wangping", String.format("pointMap, aNum:%s, type:%s", aNum, type));
                             try {
 //                                Page4Activity.checkboxMap.put(aNum, type);
@@ -132,6 +127,7 @@ public class OnMyClickListener implements View.OnClickListener {
                                 }
                                 Log.d("wangping", String.format("setPoint end:%s", TimeUtil.getNowStrTime()));
 
+                                UdpSystem.getNowState();
                                 final long page4Time = System.currentTimeMillis();
                                 if (null != dialog) application.getMap().put("dialog", dialog);
                                 Page4Activity page4Activity = (Page4Activity) myContext;

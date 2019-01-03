@@ -8,7 +8,6 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -70,6 +69,9 @@ public class MainActivity extends BaseActivity implements NetworkChangeReceiver.
         home_recycle_view.setLayoutManager(linearLayoutManager);
         RecyclerView.LayoutManager circleLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         recycle_view_circle.setLayoutManager(circleLayoutManager);
+
+        application.getMap().put("returnFlag", false);
+        application.setCurrentActivityClass(this.getClass());
         registerBroadcast();
 
         initData();
